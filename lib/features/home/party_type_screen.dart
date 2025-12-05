@@ -12,13 +12,55 @@ class _PartyTypeScreenState extends State<PartyTypeScreen> {
   String? _selectedPartyTypeId;
 
   final List<Map<String, dynamic>> _partyOptions = [
-    {'id': '1', 'title': 'Fiesta Infantil', 'description': 'Celebra a los más pequeños.', 'icon': Icons.cake, 'color': Colors.pink},
-    {'id': '2', 'title': 'XV Años', 'description': 'Un momento inolvidable.', 'icon': Icons.star, 'color': Colors.purple},
-    {'id': '3', 'title': 'Boda', 'description': 'El día más especial.', 'icon': Icons.favorite, 'color': Colors.red},
-    {'id': '4', 'title': 'Baby Shower', 'description': 'Bienvenida al nuevo bebé.', 'icon': Icons.child_friendly, 'color': Colors.blue},
-    {'id': '5', 'title': 'Evento Corporativo', 'description': 'Profesional y memorable.', 'icon': Icons.work, 'color': Colors.indigo},
-    {'id': '6', 'title': 'Reunión Familiar', 'description': 'Momentos para compartir.', 'icon': Icons.home, 'color': Colors.green},
-    {'id': '7', 'title': 'Otro', 'description': 'Personaliza tu evento.', 'icon': Icons.more_horiz, 'color': Colors.orange},
+    {
+      'id': '1',
+      'title': 'Fiesta Infantil',
+      'description': 'Celebra a los más pequeños.',
+      'icon': Icons.cake,
+      'color': Colors.pink,
+    },
+    {
+      'id': '2',
+      'title': 'XV Años',
+      'description': 'Un momento inolvidable.',
+      'icon': Icons.star,
+      'color': Colors.purple,
+    },
+    {
+      'id': '3',
+      'title': 'Boda',
+      'description': 'El día más especial.',
+      'icon': Icons.favorite,
+      'color': Colors.red,
+    },
+    {
+      'id': '4',
+      'title': 'Baby Shower',
+      'description': 'Bienvenida al nuevo bebé.',
+      'icon': Icons.child_friendly,
+      'color': Colors.blue,
+    },
+    {
+      'id': '5',
+      'title': 'Evento Corporativo',
+      'description': 'Profesional y memorable.',
+      'icon': Icons.work,
+      'color': Colors.indigo,
+    },
+    {
+      'id': '6',
+      'title': 'Reunión Familiar',
+      'description': 'Momentos para compartir.',
+      'icon': Icons.home,
+      'color': Colors.green,
+    },
+    {
+      'id': '7',
+      'title': 'Otro',
+      'description': 'Personaliza tu evento.',
+      'icon': Icons.more_horiz,
+      'color': Colors.orange,
+    },
   ];
 
   void _handleContinue() {
@@ -26,7 +68,11 @@ class _PartyTypeScreenState extends State<PartyTypeScreen> {
       context.push('/home');
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor, selecciona un tipo de fiesta para continuar.')),
+        const SnackBar(
+          content: Text(
+            'Por favor, selecciona un tipo de fiesta para continuar.',
+          ),
+        ),
       );
     }
   }
@@ -41,9 +87,9 @@ class _PartyTypeScreenState extends State<PartyTypeScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () {
-             // If we can't go back (e.g. from login), maybe logout? 
-             // Or just let it be if it's the start of the flow.
-             if (context.canPop()) context.pop();
+            // If we can't go back (e.g. from login), maybe logout?
+            // Or just let it be if it's the start of the flow.
+            if (context.canPop()) context.pop();
           },
         ),
       ),
@@ -55,7 +101,11 @@ class _PartyTypeScreenState extends State<PartyTypeScreen> {
             children: [
               const Text(
                 '¿Qué tipo de fiesta necesitas?',
-                style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.black),
+                style: TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 20),
@@ -72,32 +122,47 @@ class _PartyTypeScreenState extends State<PartyTypeScreen> {
                     final item = _partyOptions[index];
                     final isSelected = item['id'] == _selectedPartyTypeId;
                     return GestureDetector(
-                      onTap: () => setState(() => _selectedPartyTypeId = item['id']),
+                      onTap: () =>
+                          setState(() => _selectedPartyTypeId = item['id']),
                       child: Container(
                         decoration: BoxDecoration(
                           color: isSelected ? Colors.red[50] : Colors.white,
                           borderRadius: BorderRadius.circular(15),
                           border: Border.all(
-                            color: isSelected ? Colors.red : Colors.grey.shade300,
+                            color: isSelected
+                                ? Colors.red
+                                : Colors.grey.shade300,
                             width: 1.5,
                           ),
                         ),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(item['icon'], size: 40, color: isSelected ? Colors.red : item['color']),
+                            Icon(
+                              item['icon'],
+                              size: 40,
+                              color: isSelected ? Colors.red : item['color'],
+                            ),
                             const SizedBox(height: 10),
                             Text(
                               item['title'],
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
                               textAlign: TextAlign.center,
                             ),
                             const SizedBox(height: 4),
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8.0,
+                              ),
                               child: Text(
                                 item['description'],
-                                style: const TextStyle(fontSize: 12, color: Colors.grey),
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                ),
                                 textAlign: TextAlign.center,
                               ),
                             ),
@@ -116,9 +181,14 @@ class _PartyTypeScreenState extends State<PartyTypeScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red,
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
                   ),
-                  child: const Text('Continuar', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  child: const Text(
+                    'Continuar',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
                 ),
               ),
             ],

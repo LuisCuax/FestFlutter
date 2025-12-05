@@ -48,7 +48,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     try {
       final data = await SupabaseClientConfig.instance
           .from('chat_channels')
-          .select('client_id, provider_id, client_profile:client_id(full_name), provider_profile:provider_id(business_name, full_name)')
+          .select(
+            'client_id, provider_id, client_profile:client_id(full_name), provider_profile:provider_id(business_name, full_name)',
+          )
           .eq('id', widget.channelId)
           .single();
 
@@ -56,7 +58,10 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         setState(() {
           if (_userId == data['client_id']) {
             final provider = data['provider_profile'];
-            _otherUserName = provider?['business_name'] ?? provider?['full_name'] ?? 'Proveedor';
+            _otherUserName =
+                provider?['business_name'] ??
+                provider?['full_name'] ??
+                'Proveedor';
           } else {
             final client = data['client_profile'];
             _otherUserName = client?['full_name'] ?? 'Cliente';
@@ -146,7 +151,10 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         ),
         title: Text(
           _otherUserName,
-          style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          style: const TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
       body: SafeArea(
@@ -154,7 +162,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
           children: [
             Expanded(
               child: _isLoading
-                  ? const Center(child: CircularProgressIndicator(color: Colors.red))
+                  ? const Center(
+                      child: CircularProgressIndicator(color: Colors.red),
+                    )
                   : ListView.builder(
                       reverse: true,
                       padding: const EdgeInsets.all(15),
@@ -162,21 +172,32 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                       itemBuilder: (context, index) {
                         final msg = _messages[index];
                         final isMe = msg['sender_id'] == _userId;
-                        final time = DateFormat('HH:mm').format(DateTime.parse(msg['created_at']).toLocal());
+                        final time = DateFormat(
+                          'HH:mm',
+                        ).format(DateTime.parse(msg['created_at']).toLocal());
 
                         return Align(
-                          alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+                          alignment: isMe
+                              ? Alignment.centerRight
+                              : Alignment.centerLeft,
                           child: Container(
                             margin: const EdgeInsets.only(bottom: 10),
                             padding: const EdgeInsets.all(12),
-                            constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
+                            constraints: BoxConstraints(
+                              maxWidth:
+                                  MediaQuery.of(context).size.width * 0.75,
+                            ),
                             decoration: BoxDecoration(
                               color: isMe ? Colors.red : Colors.grey[200],
                               borderRadius: BorderRadius.only(
                                 topLeft: const Radius.circular(15),
                                 topRight: const Radius.circular(15),
-                                bottomLeft: isMe ? const Radius.circular(15) : const Radius.circular(2),
-                                bottomRight: isMe ? const Radius.circular(2) : const Radius.circular(15),
+                                bottomLeft: isMe
+                                    ? const Radius.circular(15)
+                                    : const Radius.circular(2),
+                                bottomRight: isMe
+                                    ? const Radius.circular(2)
+                                    : const Radius.circular(15),
                               ),
                             ),
                             child: Column(
@@ -194,7 +215,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                   time,
                                   style: TextStyle(
                                     fontSize: 10,
-                                    color: isMe ? Colors.white70 : Colors.black54,
+                                    color: isMe
+                                        ? Colors.white70
+                                        : Colors.black54,
                                   ),
                                 ),
                               ],
@@ -223,7 +246,10 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                           borderRadius: BorderRadius.circular(20),
                           borderSide: BorderSide.none,
                         ),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 15,
+                          vertical: 10,
+                        ),
                       ),
                       maxLines: null,
                     ),

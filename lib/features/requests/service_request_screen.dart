@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/supabase_client.dart';
 
 class ServiceRequestScreen extends StatefulWidget {
@@ -34,7 +33,7 @@ class _ServiceRequestScreenState extends State<ServiceRequestScreen> {
   late TextEditingController _descriptionController;
   late TextEditingController _locationController;
   late TextEditingController _guestCountController;
-  
+
   String? _eventDate;
   String? _eventTime;
   bool _isLoading = false;
@@ -60,7 +59,9 @@ class _ServiceRequestScreenState extends State<ServiceRequestScreen> {
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: _eventDate != null ? DateTime.parse(_eventDate!) : DateTime.now(),
+      initialDate: _eventDate != null
+          ? DateTime.parse(_eventDate!)
+          : DateTime.now(),
       firstDate: DateTime.now(),
       lastDate: DateTime(2101),
     );
@@ -74,17 +75,23 @@ class _ServiceRequestScreenState extends State<ServiceRequestScreen> {
   Future<void> _selectTime(BuildContext context) async {
     final TimeOfDay? picked = await showTimePicker(
       context: context,
-      initialTime: _eventTime != null 
+      initialTime: _eventTime != null
           ? TimeOfDay(
-              hour: int.parse(_eventTime!.split(':')[0]), 
-              minute: int.parse(_eventTime!.split(':')[1])
-            ) 
+              hour: int.parse(_eventTime!.split(':')[0]),
+              minute: int.parse(_eventTime!.split(':')[1]),
+            )
           : TimeOfDay.now(),
     );
     if (picked != null) {
       setState(() {
         final now = DateTime.now();
-        final dt = DateTime(now.year, now.month, now.day, picked.hour, picked.minute);
+        final dt = DateTime(
+          now.year,
+          now.month,
+          now.day,
+          picked.hour,
+          picked.minute,
+        );
         _eventTime = DateFormat('HH:mm').format(dt);
       });
     }
@@ -95,7 +102,11 @@ class _ServiceRequestScreenState extends State<ServiceRequestScreen> {
     final location = _locationController.text.trim();
     final guestCount = _guestCountController.text.trim();
 
-    if (description.isEmpty || _eventDate == null || _eventTime == null || location.isEmpty || guestCount.isEmpty) {
+    if (description.isEmpty ||
+        _eventDate == null ||
+        _eventTime == null ||
+        location.isEmpty ||
+        guestCount.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Por favor completa todos los campos.')),
       );
@@ -144,7 +155,9 @@ class _ServiceRequestScreenState extends State<ServiceRequestScreen> {
           context: context,
           builder: (context) => AlertDialog(
             title: const Text('Éxito'),
-            content: Text('Solicitud ${widget.id != null ? 'actualizada' : 'enviada'} correctamente'),
+            content: Text(
+              'Solicitud ${widget.id != null ? 'actualizada' : 'enviada'} correctamente',
+            ),
             actions: [
               TextButton(
                 onPressed: () {
@@ -165,7 +178,9 @@ class _ServiceRequestScreenState extends State<ServiceRequestScreen> {
       debugPrint('Error submitting request: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Hubo un problema al enviar la solicitud.')),
+          const SnackBar(
+            content: Text('Hubo un problema al enviar la solicitud.'),
+          ),
         );
       }
     } finally {
@@ -188,7 +203,10 @@ class _ServiceRequestScreenState extends State<ServiceRequestScreen> {
         ),
         title: Text(
           isEditing ? 'Editar Solicitud' : 'Nueva Solicitud',
-          style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          style: const TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         centerTitle: true,
       ),
@@ -199,20 +217,29 @@ class _ServiceRequestScreenState extends State<ServiceRequestScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                isEditing ? 'Editar Solicitud' : 'Describe lo que necesitas para ${widget.categoryName ?? 'tu evento'}',
-                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                isEditing
+                    ? 'Editar Solicitud'
+                    : 'Describe lo que necesitas para ${widget.categoryName ?? 'tu evento'}',
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 20),
 
               // Description
-              const Text('Descripción del evento', style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text(
+                'Descripción del evento',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 8),
               TextField(
                 controller: _descriptionController,
                 maxLines: 4,
                 decoration: InputDecoration(
-                  hintText: 'Ej: Necesito decoración con globos y temática de superhéroes...',
+                  hintText:
+                      'Ej: Necesito decoración con globos y temática de superhéroes...',
                   filled: true,
                   fillColor: Colors.grey[100],
                   border: OutlineInputBorder(
@@ -230,7 +257,10 @@ class _ServiceRequestScreenState extends State<ServiceRequestScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Fecha', style: TextStyle(fontWeight: FontWeight.bold)),
+                        const Text(
+                          'Fecha',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
                         const SizedBox(height: 8),
                         GestureDetector(
                           onTap: () => _selectDate(context),
@@ -242,9 +272,16 @@ class _ServiceRequestScreenState extends State<ServiceRequestScreen> {
                             ),
                             child: Row(
                               children: [
-                                const Icon(Icons.calendar_today, color: Colors.grey, size: 20),
+                                const Icon(
+                                  Icons.calendar_today,
+                                  color: Colors.grey,
+                                  size: 20,
+                                ),
                                 const SizedBox(width: 8),
-                                Text(_eventDate ?? 'Selecciona', style: const TextStyle(fontSize: 14)),
+                                Text(
+                                  _eventDate ?? 'Selecciona',
+                                  style: const TextStyle(fontSize: 14),
+                                ),
                               ],
                             ),
                           ),
@@ -257,7 +294,10 @@ class _ServiceRequestScreenState extends State<ServiceRequestScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Hora', style: TextStyle(fontWeight: FontWeight.bold)),
+                        const Text(
+                          'Hora',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
                         const SizedBox(height: 8),
                         GestureDetector(
                           onTap: () => _selectTime(context),
@@ -269,9 +309,16 @@ class _ServiceRequestScreenState extends State<ServiceRequestScreen> {
                             ),
                             child: Row(
                               children: [
-                                const Icon(Icons.access_time, color: Colors.grey, size: 20),
+                                const Icon(
+                                  Icons.access_time,
+                                  color: Colors.grey,
+                                  size: 20,
+                                ),
                                 const SizedBox(width: 8),
-                                Text(_eventTime ?? 'Selecciona', style: const TextStyle(fontSize: 14)),
+                                Text(
+                                  _eventTime ?? 'Selecciona',
+                                  style: const TextStyle(fontSize: 14),
+                                ),
                               ],
                             ),
                           ),
@@ -284,7 +331,10 @@ class _ServiceRequestScreenState extends State<ServiceRequestScreen> {
               const SizedBox(height: 20),
 
               // Location
-              const Text('Ubicación o dirección', style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text(
+                'Ubicación o dirección',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 8),
               TextField(
                 controller: _locationController,
@@ -302,7 +352,10 @@ class _ServiceRequestScreenState extends State<ServiceRequestScreen> {
               const SizedBox(height: 20),
 
               // Guests
-              const Text('Número de invitados', style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text(
+                'Número de invitados',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 8),
               TextField(
                 controller: _guestCountController,
@@ -327,11 +380,19 @@ class _ServiceRequestScreenState extends State<ServiceRequestScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red,
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
                   ),
                   child: _isLoading
                       ? const CircularProgressIndicator(color: Colors.white)
-                      : Text(isEditing ? 'Guardar Cambios' : 'Enviar solicitud', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      : Text(
+                          isEditing ? 'Guardar Cambios' : 'Enviar solicitud',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                 ),
               ),
             ],

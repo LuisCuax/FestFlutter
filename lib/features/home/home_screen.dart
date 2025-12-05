@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/supabase_client.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -26,7 +25,7 @@ class _HomeScreenState extends State<HomeScreen> {
           .from('service_categories')
           .select('id, name, icon')
           .eq('active', true);
-      
+
       if (mounted) {
         setState(() {
           _services = List<Map<String, dynamic>>.from(data);
@@ -41,17 +40,40 @@ class _HomeScreenState extends State<HomeScreen> {
 
   IconData _getCategoryIcon(String categoryName) {
     final normalized = categoryName.toLowerCase();
-    if (normalized.contains('floreria') || normalized.contains('floristeria')) return Icons.local_florist;
-    if (normalized.contains('pasteleria') || normalized.contains('pastel')) return Icons.cake;
-    if (normalized.contains('iluminacion') || normalized.contains('luces')) return Icons.lightbulb;
-    if (normalized.contains('decoracion') || normalized.contains('globos')) return Icons.celebration; // Balloon equivalent
-    if (normalized.contains('catering') || normalized.contains('comida')) return Icons.restaurant;
-    if (normalized.contains('musica') || normalized.contains('dj')) return Icons.music_note;
-    if (normalized.contains('foto') || normalized.contains('video')) return Icons.camera_alt;
-    if (normalized.contains('mobiliario') || normalized.contains('sillas')) return Icons.chair;
-    if (normalized.contains('montaje') || normalized.contains('carpas')) return Icons.build;
-    if (normalized.contains('animacion') || normalized.contains('entretenimiento')) return Icons.auto_awesome; // Magic equivalent
-    if (normalized.contains('bebidas') || normalized.contains('barra')) return Icons.local_bar;
+    if (normalized.contains('floreria') || normalized.contains('floristeria')) {
+      return Icons.local_florist;
+    }
+    if (normalized.contains('pasteleria') || normalized.contains('pastel')) {
+      return Icons.cake;
+    }
+    if (normalized.contains('iluminacion') || normalized.contains('luces')) {
+      return Icons.lightbulb;
+    }
+    if (normalized.contains('decoracion') || normalized.contains('globos')) {
+      return Icons.celebration; // Balloon equivalent
+    }
+    if (normalized.contains('catering') || normalized.contains('comida')) {
+      return Icons.restaurant;
+    }
+    if (normalized.contains('musica') || normalized.contains('dj')) {
+      return Icons.music_note;
+    }
+    if (normalized.contains('foto') || normalized.contains('video')) {
+      return Icons.camera_alt;
+    }
+    if (normalized.contains('mobiliario') || normalized.contains('sillas')) {
+      return Icons.chair;
+    }
+    if (normalized.contains('montaje') || normalized.contains('carpas')) {
+      return Icons.build;
+    }
+    if (normalized.contains('animacion') ||
+        normalized.contains('entretenimiento')) {
+      return Icons.auto_awesome; // Magic equivalent
+    }
+    if (normalized.contains('bebidas') || normalized.contains('barra')) {
+      return Icons.local_bar;
+    }
     return Icons.apps;
   }
 
@@ -72,7 +94,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   const Icon(Icons.celebration, size: 28, color: Colors.black),
                   IconButton(
-                    icon: const Icon(Icons.account_circle, size: 28, color: Colors.black),
+                    icon: const Icon(
+                      Icons.account_circle,
+                      size: 28,
+                      color: Colors.black,
+                    ),
                     onPressed: () => context.push('/client-profile'),
                   ),
                 ],
@@ -80,30 +106,43 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 20),
               const Text(
                 '¿Qué servicio necesitas hoy?',
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.black),
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
               ),
               const SizedBox(height: 20),
-              
+
               Expanded(
                 child: _isLoading
-                    ? const Center(child: CircularProgressIndicator(color: Colors.red))
+                    ? const Center(
+                        child: CircularProgressIndicator(color: Colors.red),
+                      )
                     : GridView.builder(
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: 10,
-                          mainAxisSpacing: 10,
-                          childAspectRatio: 1.2,
-                        ),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              crossAxisSpacing: 10,
+                              mainAxisSpacing: 10,
+                              childAspectRatio: 1.2,
+                            ),
                         itemCount: _services.length,
                         itemBuilder: (context, index) {
                           final item = _services[index];
-                          final displayName = item['name'].toLowerCase() == 'floristeria' ? 'Floreria' : item['name'];
-                          
+                          final displayName =
+                              item['name'].toLowerCase() == 'floristeria'
+                              ? 'Floreria'
+                              : item['name'];
+
                           return GestureDetector(
                             onTap: () {
                               context.push(
                                 '/service-request',
-                                extra: {'categoryId': item['id'], 'categoryName': displayName},
+                                extra: {
+                                  'categoryId': item['id'],
+                                  'categoryName': displayName,
+                                },
                               );
                             },
                             child: Container(
@@ -115,12 +154,18 @@ class _HomeScreenState extends State<HomeScreen> {
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(_getCategoryIcon(item['name']), color: Colors.red),
+                                  Icon(
+                                    _getCategoryIcon(item['name']),
+                                    color: Colors.red,
+                                  ),
                                   const SizedBox(width: 8),
                                   Flexible(
                                     child: Text(
                                       displayName,
-                                      style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87),
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black87,
+                                      ),
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
@@ -131,7 +176,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         },
                       ),
               ),
-              
+
               // Bottom Nav Bar Placeholder (or implemented as a ShellRoute in GoRouter)
               // For now, just a static row to match the visual
               Container(
@@ -143,9 +188,24 @@ class _HomeScreenState extends State<HomeScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     _buildNavItem(Icons.home, 'Inicio', true, () {}),
-                    _buildNavItem(Icons.calendar_today, 'Mis Solicitudes', false, () => context.push('/my-requests')),
-                    _buildNavItem(Icons.chat_bubble_outline, 'Chats', false, () => context.push('/chats')),
-                    _buildNavItem(Icons.person_outline, 'Perfil', false, () => context.push('/client-profile')),
+                    _buildNavItem(
+                      Icons.calendar_today,
+                      'Mis Solicitudes',
+                      false,
+                      () => context.push('/my-requests'),
+                    ),
+                    _buildNavItem(
+                      Icons.chat_bubble_outline,
+                      'Chats',
+                      false,
+                      () => context.push('/chats'),
+                    ),
+                    _buildNavItem(
+                      Icons.person_outline,
+                      'Perfil',
+                      false,
+                      () => context.push('/client-profile'),
+                    ),
                   ],
                 ),
               ),
@@ -156,7 +216,12 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildNavItem(IconData icon, String label, bool isActive, VoidCallback onTap) {
+  Widget _buildNavItem(
+    IconData icon,
+    String label,
+    bool isActive,
+    VoidCallback onTap,
+  ) {
     return GestureDetector(
       onTap: onTap,
       child: Column(

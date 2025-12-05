@@ -17,11 +17,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
-  
+
   bool _isLoading = false;
   bool _passwordVisible = false;
   String _role = 'client'; // 'client' or 'provider'
-  
+
   List<Map<String, dynamic>> _categories = [];
   String? _selectedCategory;
 
@@ -37,7 +37,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           .from('service_categories')
           .select('id, name, icon')
           .eq('active', true);
-      
+
       if (mounted) {
         setState(() {
           _categories = List<Map<String, dynamic>>.from(data);
@@ -55,9 +55,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final password = _passwordController.text.trim();
     final businessName = _businessNameController.text.trim();
 
-    if (fullName.isEmpty || email.isEmpty || phone.isEmpty || password.isEmpty) {
+    if (fullName.isEmpty ||
+        email.isEmpty ||
+        phone.isEmpty ||
+        password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor, completa todos los campos obligatorios.')),
+        const SnackBar(
+          content: Text('Por favor, completa todos los campos obligatorios.'),
+        ),
       );
       return;
     }
@@ -65,13 +70,19 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     if (_role == 'provider') {
       if (businessName.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Por favor, ingresa el nombre de tu negocio.')),
+          const SnackBar(
+            content: Text('Por favor, ingresa el nombre de tu negocio.'),
+          ),
         );
         return;
       }
       if (_selectedCategory == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Por favor, selecciona la categoría principal de tu servicio.')),
+          const SnackBar(
+            content: Text(
+              'Por favor, selecciona la categoría principal de tu servicio.',
+            ),
+          ),
         );
         return;
       }
@@ -110,8 +121,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
         // 3. Create Initial Service (if Provider)
         if (_role == 'provider' && _selectedCategory != null) {
-          final catName = _categories.firstWhere((c) => c['id'] == _selectedCategory)['name'] ?? 'Servicio General';
-          
+          final catName =
+              _categories.firstWhere(
+                (c) => c['id'] == _selectedCategory,
+              )['name'] ??
+              'Servicio General';
+
           await SupabaseClientConfig.instance.from('services').insert({
             'provider_id': user.id,
             'category_id': _selectedCategory,
@@ -127,7 +142,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             context: context,
             builder: (context) => AlertDialog(
               title: const Text('Éxito'),
-              content: const Text('Cuenta creada correctamente. Por favor, verifica tu correo electrónico si es necesario.'),
+              content: const Text(
+                'Cuenta creada correctamente. Por favor, verifica tu correo electrónico si es necesario.',
+              ),
               actions: [
                 TextButton(
                   onPressed: () {
@@ -151,7 +168,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       debugPrint('Registration error: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Ocurrió un error al registrarse'), backgroundColor: Colors.red),
+          const SnackBar(
+            content: Text('Ocurrió un error al registrarse'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } finally {
@@ -195,7 +215,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               const SizedBox(height: 30),
 
               // Role Selection
-              const Text('Soy un:', style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text(
+                'Soy un:',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 10),
               Row(
                 children: [
@@ -204,7 +227,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   ),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: _buildRoleButton('Proveedor', 'provider', Icons.store),
+                    child: _buildRoleButton(
+                      'Proveedor',
+                      'provider',
+                      Icons.store,
+                    ),
                   ),
                 ],
               ),
@@ -212,9 +239,17 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
               // Provider Specific Fields
               if (_role == 'provider') ...[
-                _buildTextField('Nombre del Negocio', _businessNameController, Icons.business, 'Ej. Eventos Mágicos'),
+                _buildTextField(
+                  'Nombre del Negocio',
+                  _businessNameController,
+                  Icons.business,
+                  'Ej. Eventos Mágicos',
+                ),
                 const SizedBox(height: 20),
-                const Text('Categoría Principal de Servicio', style: TextStyle(fontWeight: FontWeight.bold)),
+                const Text(
+                  'Categoría Principal de Servicio',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 10),
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
@@ -224,7 +259,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       return Padding(
                         padding: const EdgeInsets.only(right: 10),
                         child: ChoiceChip(
-                          label: Text(cat['name'] == 'Floristeria' ? 'Floreria' : cat['name']),
+                          label: Text(
+                            cat['name'] == 'Floristeria'
+                                ? 'Floreria'
+                                : cat['name'],
+                          ),
                           selected: isSelected,
                           onSelected: (selected) {
                             setState(() {
@@ -234,12 +273,18 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           selectedColor: Colors.red[100],
                           labelStyle: TextStyle(
                             color: isSelected ? Colors.red : Colors.black,
-                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                            fontWeight: isSelected
+                                ? FontWeight.bold
+                                : FontWeight.normal,
                           ),
                           backgroundColor: Colors.grey[100],
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(20),
-                            side: BorderSide(color: isSelected ? Colors.red : Colors.grey.shade300),
+                            side: BorderSide(
+                              color: isSelected
+                                  ? Colors.red
+                                  : Colors.grey.shade300,
+                            ),
                           ),
                         ),
                       );
@@ -249,15 +294,35 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 const SizedBox(height: 20),
               ],
 
-              _buildTextField('Nombre completo', _fullNameController, Icons.person, 'John Doe'),
+              _buildTextField(
+                'Nombre completo',
+                _fullNameController,
+                Icons.person,
+                'John Doe',
+              ),
               const SizedBox(height: 20),
-              _buildTextField('Correo electrónico', _emailController, Icons.email, 'tu.correo@ejemplo.com', keyboardType: TextInputType.emailAddress),
+              _buildTextField(
+                'Correo electrónico',
+                _emailController,
+                Icons.email,
+                'tu.correo@ejemplo.com',
+                keyboardType: TextInputType.emailAddress,
+              ),
               const SizedBox(height: 20),
-              _buildTextField('Teléfono', _phoneController, Icons.phone, '123-456-7890', keyboardType: TextInputType.phone),
+              _buildTextField(
+                'Teléfono',
+                _phoneController,
+                Icons.phone,
+                '123-456-7890',
+                keyboardType: TextInputType.phone,
+              ),
               const SizedBox(height: 20),
-              
+
               // Password
-              const Text('Contraseña', style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text(
+                'Contraseña',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 8),
               TextField(
                 controller: _passwordController,
@@ -265,8 +330,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 decoration: InputDecoration(
                   prefixIcon: const Icon(Icons.lock, color: Colors.grey),
                   suffixIcon: IconButton(
-                    icon: Icon(_passwordVisible ? Icons.visibility : Icons.visibility_off, color: Colors.grey),
-                    onPressed: () => setState(() => _passwordVisible = !_passwordVisible),
+                    icon: Icon(
+                      _passwordVisible
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                      color: Colors.grey,
+                    ),
+                    onPressed: () =>
+                        setState(() => _passwordVisible = !_passwordVisible),
                   ),
                   hintText: '********',
                   filled: true,
@@ -287,11 +358,19 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red,
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
                   child: _isLoading
                       ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text('Registrar', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      : const Text(
+                          'Registrar',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                 ),
               ),
 
@@ -299,10 +378,19 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text('¿Ya tienes una cuenta? ', style: TextStyle(color: Colors.grey)),
+                  const Text(
+                    '¿Ya tienes una cuenta? ',
+                    style: TextStyle(color: Colors.grey),
+                  ),
                   GestureDetector(
                     onTap: () => context.go('/login'),
-                    child: const Text('Inicia sesión', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+                    child: const Text(
+                      'Inicia sesión',
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -323,12 +411,18 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         decoration: BoxDecoration(
           color: isSelected ? Colors.red : Colors.grey[100],
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: isSelected ? Colors.red : Colors.grey.shade300),
+          border: Border.all(
+            color: isSelected ? Colors.red : Colors.grey.shade300,
+          ),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: isSelected ? Colors.white : Colors.grey, size: 20),
+            Icon(
+              icon,
+              color: isSelected ? Colors.white : Colors.grey,
+              size: 20,
+            ),
             const SizedBox(width: 8),
             Text(
               label,
@@ -343,7 +437,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     );
   }
 
-  Widget _buildTextField(String label, TextEditingController controller, IconData icon, String hint, {TextInputType? keyboardType}) {
+  Widget _buildTextField(
+    String label,
+    TextEditingController controller,
+    IconData icon,
+    String hint, {
+    TextInputType? keyboardType,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

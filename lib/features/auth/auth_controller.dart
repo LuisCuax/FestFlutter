@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/supabase_client.dart';
@@ -15,7 +14,7 @@ final userProvider = Provider<User?>((ref) {
 final userProfileProvider = FutureProvider<Map<String, dynamic>?>((ref) async {
   final user = ref.watch(userProvider);
   if (user == null) return null;
-  
+
   try {
     final data = await SupabaseClientConfig.instance
         .from('profiles')

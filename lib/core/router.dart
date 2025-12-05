@@ -19,26 +19,21 @@ import '../features/profile/provider_profile_screen.dart';
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authProvider);
   final userProfileAsync = ref.watch(userProfileProvider);
-  
+
   return GoRouter(
     initialLocation: '/',
     routes: [
       GoRoute(
         path: '/',
-        builder: (context, state) => const Scaffold(body: Center(child: CircularProgressIndicator())),
+        builder: (context, state) =>
+            const Scaffold(body: Center(child: CircularProgressIndicator())),
       ),
-      GoRoute(
-        path: '/login',
-        builder: (context, state) => const LoginScreen(),
-      ),
+      GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
       GoRoute(
         path: '/register',
         builder: (context, state) => const RegisterScreen(),
       ),
-      GoRoute(
-        path: '/home',
-        builder: (context, state) => const HomeScreen(),
-      ),
+      GoRoute(path: '/home', builder: (context, state) => const HomeScreen()),
       GoRoute(
         path: '/provider-home',
         builder: (context, state) => const ProviderHomeScreen(),
@@ -115,7 +110,7 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       if (state.uri.path == '/') {
         if (userProfileAsync.isLoading) return null;
-        
+
         final profile = userProfileAsync.value;
         if (profile != null) {
           final role = profile['role'];

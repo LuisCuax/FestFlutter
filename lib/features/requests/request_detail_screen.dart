@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/supabase_client.dart';
 
 class RequestDetailScreen extends StatefulWidget {
@@ -31,11 +30,13 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
           .select('*, service_categories(name)')
           .eq('id', widget.requestId)
           .single();
-      
+
       // 2. Fetch proposals (quotes)
       final quotesResponse = await SupabaseClientConfig.instance
           .from('quotes')
-          .select('*, profiles(full_name, business_name)') // Assuming profiles is linked
+          .select(
+            '*, profiles(full_name, business_name)',
+          ) // Assuming profiles is linked
           .eq('request_id', widget.requestId);
 
       if (mounted) {
@@ -77,7 +78,10 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => context.pop(),
         ),
-        title: const Text('Detalle de la Solicitud', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Detalle de la Solicitud',
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+        ),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -108,29 +112,51 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                         children: [
                           Text(
                             'Categoría: $categoryName',
-                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                           const SizedBox(height: 10),
                           Text(
                             _request!['description'] ?? '',
-                            style: const TextStyle(fontSize: 14, color: Colors.brown, height: 1.5),
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Colors.brown,
+                              height: 1.5,
+                            ),
                           ),
                           const SizedBox(height: 15),
                           const Divider(),
                           const SizedBox(height: 15),
-                          _buildInfoRow(Icons.calendar_today, 'Fecha y Hora', '${_request!['event_date']} - ${_request!['event_time']}'),
+                          _buildInfoRow(
+                            Icons.calendar_today,
+                            'Fecha y Hora',
+                            '${_request!['event_date']} - ${_request!['event_time']}',
+                          ),
                           const SizedBox(height: 15),
-                          _buildInfoRow(Icons.location_on, 'Ubicación', _request!['location'] ?? ''),
+                          _buildInfoRow(
+                            Icons.location_on,
+                            'Ubicación',
+                            _request!['location'] ?? '',
+                          ),
                           const SizedBox(height: 15),
-                          _buildInfoRow(Icons.people, 'Invitados', '${_request!['guest_count']} personas'),
+                          _buildInfoRow(
+                            Icons.people,
+                            'Invitados',
+                            '${_request!['guest_count']} personas',
+                          ),
                         ],
                       ),
                     ),
-                    
+
                     const SizedBox(height: 25),
                     const Text(
                       'Propuestas Recibidas',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 15),
 
@@ -138,11 +164,16 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                       const Center(
                         child: Padding(
                           padding: EdgeInsets.all(20.0),
-                          child: Text('Aún no has recibido propuestas.', style: TextStyle(color: Colors.grey)),
+                          child: Text(
+                            'Aún no has recibido propuestas.',
+                            style: TextStyle(color: Colors.grey),
+                          ),
                         ),
                       )
                     else
-                      ..._proposals.map((proposal) => _buildProposalCard(proposal)),
+                      ..._proposals.map(
+                        (proposal) => _buildProposalCard(proposal),
+                      ),
                   ],
                 ),
               ),
@@ -178,7 +209,9 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.red,
                         side: const BorderSide(color: Colors.red),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(25),
+                        ),
                         padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
                       child: const Text('Editar solicitud'),
@@ -194,7 +227,9 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                         foregroundColor: Colors.brown,
                         backgroundColor: Colors.grey[100],
                         side: BorderSide.none,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(25),
+                        ),
                         padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
                       child: const Text('Cancelar solicitud'),
@@ -217,8 +252,14 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(label, style: const TextStyle(fontSize: 12, color: Colors.brown)),
-            Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+            Text(
+              label,
+              style: const TextStyle(fontSize: 12, color: Colors.brown),
+            ),
+            Text(
+              value,
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+            ),
           ],
         ),
       ],
@@ -226,7 +267,10 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
   }
 
   Widget _buildProposalCard(Map<String, dynamic> proposal) {
-    final providerName = proposal['profiles']?['business_name'] ?? proposal['profiles']?['full_name'] ?? 'Proveedor';
+    final providerName =
+        proposal['profiles']?['business_name'] ??
+        proposal['profiles']?['full_name'] ??
+        'Proveedor';
     final price = proposal['price'] ?? 0;
 
     return Container(
@@ -246,17 +290,30 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(providerName, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          Text(
+            providerName,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 5),
           Row(
             children: [
               const Icon(Icons.star, color: Colors.amber, size: 14),
               const SizedBox(width: 5),
-              const Text('4.8 (120 reseñas)', style: TextStyle(fontSize: 12, color: Colors.grey)), // Mock rating
+              const Text(
+                '4.8 (120 reseñas)',
+                style: TextStyle(fontSize: 12, color: Colors.grey),
+              ), // Mock rating
             ],
           ),
           const SizedBox(height: 15),
-          Text('Propuesta: \$$price', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.brown)),
+          Text(
+            'Propuesta: \$$price',
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: Colors.brown,
+            ),
+          ),
           const SizedBox(height: 15),
           Row(
             children: [
@@ -266,7 +323,9 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Colors.red,
                     side: const BorderSide(color: Colors.red),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(25),
+                    ),
                   ),
                   child: const Text('Ver propuesta'),
                 ),
@@ -278,7 +337,9 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red,
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(25),
+                    ),
                   ),
                   child: const Text('Elegir'),
                 ),

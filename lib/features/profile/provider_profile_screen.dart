@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/supabase_client.dart';
 
 class ProviderProfileScreen extends StatefulWidget {
@@ -54,9 +53,9 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
     } catch (e) {
       debugPrint('Error signing out: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al cerrar sesión: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error al cerrar sesión: $e')));
         setState(() => _isLoading = false);
       }
     }
@@ -73,13 +72,19 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
               padding: EdgeInsets.all(16.0),
               child: Text(
                 'Mi Perfil',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
               ),
             ),
             const Divider(height: 1),
             Expanded(
               child: _isLoading
-                  ? const Center(child: CircularProgressIndicator(color: Colors.red))
+                  ? const Center(
+                      child: CircularProgressIndicator(color: Colors.red),
+                    )
                   : SingleChildScrollView(
                       padding: const EdgeInsets.all(20),
                       child: Column(
@@ -103,30 +108,47 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
                                   const CircleAvatar(
                                     radius: 40,
                                     backgroundColor: Colors.grey,
-                                    child: Icon(Icons.person, size: 50, color: Colors.white),
+                                    child: Icon(
+                                      Icons.person,
+                                      size: 50,
+                                      color: Colors.white,
+                                    ),
                                   ),
                                   const SizedBox(height: 15),
                                   Text(
                                     _profile!['full_name'] ?? '',
-                                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black87),
+                                    style: const TextStyle(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black87,
+                                    ),
                                   ),
                                   if (_profile!['business_name'] != null) ...[
                                     const SizedBox(height: 5),
                                     Text(
                                       _profile!['business_name'],
-                                      style: const TextStyle(fontSize: 16, color: Colors.black54),
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        color: Colors.black54,
+                                      ),
                                     ),
                                   ],
                                   const SizedBox(height: 5),
                                   Text(
                                     _profile!['email'] ?? '',
-                                    style: const TextStyle(fontSize: 14, color: Colors.grey),
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.grey,
+                                    ),
                                   ),
                                   if (_profile!['phone'] != null) ...[
                                     const SizedBox(height: 5),
                                     Text(
                                       _profile!['phone'],
-                                      style: const TextStyle(fontSize: 14, color: Colors.grey),
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey,
+                                      ),
                                     ),
                                   ],
                                 ],
@@ -134,7 +156,10 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
                             ),
                             const SizedBox(height: 20),
                           ] else
-                            const Text('No se pudo cargar el perfil', style: TextStyle(color: Colors.grey)),
+                            const Text(
+                              'No se pudo cargar el perfil',
+                              style: TextStyle(color: Colors.grey),
+                            ),
 
                           SizedBox(
                             width: double.infinity,
@@ -143,12 +168,29 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.red,
                                 foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(vertical: 15),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 15,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
                               ),
                               child: _isLoading
-                                  ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                                  : const Text('Cerrar Sesión', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                                  ? const SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(
+                                        color: Colors.white,
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : const Text(
+                                      'Cerrar Sesión',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
                             ),
                           ),
                         ],
@@ -166,9 +208,24 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _buildNavItem(Icons.home, 'Inicio', false, () => context.push('/provider-home')),
-                  _buildNavItem(Icons.list, 'Solicitudes', false, () => context.push('/provider-requests')),
-                  _buildNavItem(Icons.chat_bubble_outline, 'Chats', false, () => context.push('/chats')),
+                  _buildNavItem(
+                    Icons.home,
+                    'Inicio',
+                    false,
+                    () => context.push('/provider-home'),
+                  ),
+                  _buildNavItem(
+                    Icons.list,
+                    'Solicitudes',
+                    false,
+                    () => context.push('/provider-requests'),
+                  ),
+                  _buildNavItem(
+                    Icons.chat_bubble_outline,
+                    'Chats',
+                    false,
+                    () => context.push('/chats'),
+                  ),
                   _buildNavItem(Icons.person_outline, 'Perfil', true, () {}),
                 ],
               ),
@@ -179,7 +236,12 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
     );
   }
 
-  Widget _buildNavItem(IconData icon, String label, bool isActive, VoidCallback onTap) {
+  Widget _buildNavItem(
+    IconData icon,
+    String label,
+    bool isActive,
+    VoidCallback onTap,
+  ) {
     return GestureDetector(
       onTap: onTap,
       child: Column(

@@ -23,7 +23,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     if (email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor, ingresa tu correo y contraseña.')),
+        const SnackBar(
+          content: Text('Por favor, ingresa tu correo y contraseña.'),
+        ),
       );
       return;
     }
@@ -33,14 +35,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     });
 
     try {
-      final response = await SupabaseClientConfig.instance.auth.signInWithPassword(
-        email: email,
-        password: password,
-      );
+      final response = await SupabaseClientConfig.instance.auth
+          .signInWithPassword(email: email, password: password);
 
       if (mounted) {
         // Navigation is handled by the router's redirect logic based on auth state
-        // But we can check role here if needed for specific redirects, 
+        // But we can check role here if needed for specific redirects,
         // though router redirect is cleaner.
         // For now, just let the auth state change trigger the router.
       }
@@ -53,7 +53,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Ocurrió un error inesperado'), backgroundColor: Colors.red),
+          const SnackBar(
+            content: Text('Ocurrió un error inesperado'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } finally {
@@ -76,6 +79,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                Image.asset(
+                  'assets/images/logo.jpg',
+                  height: 120, // Adjust height as needed
+                ),
+                const SizedBox(height: 24),
                 const Text(
                   'Iniciar Sesión',
                   style: TextStyle(
@@ -85,7 +93,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                
+
                 // Email Input
                 Align(
                   alignment: Alignment.centerLeft,
@@ -135,7 +143,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     prefixIcon: const Icon(Icons.lock, color: Colors.grey),
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _passwordVisible ? Icons.visibility : Icons.visibility_off,
+                        _passwordVisible
+                            ? Icons.visibility
+                            : Icons.visibility_off,
                         color: Colors.grey,
                       ),
                       onPressed: () {
@@ -153,7 +163,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                   ),
                 ),
-                
+
                 const SizedBox(height: 16),
                 Align(
                   alignment: Alignment.centerRight,
@@ -201,7 +211,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text('¿No tienes cuenta? ', style: TextStyle(color: Colors.grey)),
+                    const Text(
+                      '¿No tienes cuenta? ',
+                      style: TextStyle(color: Colors.grey),
+                    ),
                     GestureDetector(
                       onTap: () => context.push('/register'),
                       child: const Text(
