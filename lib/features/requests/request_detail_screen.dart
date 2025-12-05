@@ -14,41 +14,139 @@ class RequestDetailScreen extends StatefulWidget {
 class _RequestDetailScreenState extends State<RequestDetailScreen> {
   Map<String, dynamic>? _request;
   List<Map<String, dynamic>> _proposals = [];
+  Map<String, dynamic>? _myQuote;
   bool _isLoading = true;
+  String? _userRole;
+  bool _showQuoteForm = false;
+
+  final _priceController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _fetchRequestDetails();
+    _fetchData();
   }
 
-  Future<void> _fetchRequestDetails() async {
+  @override
+  void dispose() {
+    _priceController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _fetchData() async {
     try {
-      // 1. Fetch request details
+      final user = SupabaseClientConfig.instance.auth.currentUser;
+      if (user == null) return;
+
+      // 1. Get User Role
+      final profileResponse = await SupabaseClientConfig.instance
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single();
+      _userRole = profileResponse['role'];
+
+      // 2. Fetch request details
       final requestResponse = await SupabaseClientConfig.instance
           .from('requests')
           .select('*, service_categories(name)')
           .eq('id', widget.requestId)
           .single();
 
-      // 2. Fetch proposals (quotes)
-      final quotesResponse = await SupabaseClientConfig.instance
-          .from('quotes')
-          .select(
-            '*, profiles(full_name, business_name)',
-          ) // Assuming profiles is linked
-          .eq('request_id', widget.requestId);
+      // 3. Fetch data based on role
+      if (_userRole == 'provider') {
+        // Check if I have quoted
+        final myQuoteResponse = await SupabaseClientConfig.instance
+            .from('quotes')
+            .select('*')
+            .eq('request_id', widget.requestId)
+            .eq('provider_id', user.id)
+            .maybeSingle();
+
+        _myQuote = myQuoteResponse;
+      } else {
+        // Client: fetch all proposals
+        final quotesResponse = await SupabaseClientConfig.instance
+            .from('quotes')
+            .select('*, profiles(full_name, business_name)')
+            .eq('request_id', widget.requestId);
+        _proposals = List<Map<String, dynamic>>.from(quotesResponse);
+      }
 
       if (mounted) {
         setState(() {
           _request = requestResponse;
-          _proposals = List<Map<String, dynamic>>.from(quotesResponse);
           _isLoading = false;
         });
       }
     } catch (e) {
-      debugPrint('Error fetching request details: $e');
+      debugPrint('Error fetching data: $e');
       if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _submitQuote() async {
+    if (_priceController.text.isEmpty) return;
+
+    setState(() => _isLoading = true);
+    try {
+      final user = SupabaseClientConfig.instance.auth.currentUser;
+      final price = double.tryParse(_priceController.text);
+
+      if (price == null) throw Exception("Precio inválido");
+
+      await SupabaseClientConfig.instance.from('quotes').insert({
+        'request_id': widget.requestId,
+        'provider_id': user!.id,
+        'proposed_price': price,
+        'status': 'pending',
+      });
+
+      await _fetchData();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Cotización enviada exitosamente')),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error submitting quote: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al enviar cotización: $e')),
+        );
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  Future<void> _rejectRequest() async {
+    setState(() => _isLoading = true);
+    try {
+      final user = SupabaseClientConfig.instance.auth.currentUser;
+
+      // Insert a quote with 'declined' status
+      await SupabaseClientConfig.instance.from('quotes').insert({
+        'request_id': widget.requestId,
+        'provider_id': user!.id,
+        'proposed_price': 0,
+        'status': 'declined',
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Solicitud rechazada')));
+        context.pop(); // Go back to previous screen
+      }
+    } catch (e) {
+      debugPrint('Error rejecting request: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al rechazar solicitud: $e')),
+        );
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -151,95 +249,327 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                     ),
 
                     const SizedBox(height: 25),
-                    const Text(
-                      'Propuestas Recibidas',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 15),
 
-                    if (_proposals.isEmpty)
-                      const Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(20.0),
-                          child: Text(
-                            'Aún no has recibido propuestas.',
-                            style: TextStyle(color: Colors.grey),
-                          ),
+                    if (_userRole == 'client') ...[
+                      const Text(
+                        'Propuestas Recibidas',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
                         ),
-                      )
-                    else
-                      ..._proposals.map(
-                        (proposal) => _buildProposalCard(proposal),
                       ),
+                      const SizedBox(height: 15),
+                      if (_proposals.isEmpty)
+                        const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(20.0),
+                            child: Text(
+                              'Aún no has recibido propuestas.',
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                          ),
+                        )
+                      else
+                        ..._proposals.map(
+                          (proposal) => _buildProposalCard(proposal),
+                        ),
+                    ] else if (_userRole == 'provider') ...[
+                      if (_myQuote != null)
+                        _buildMyQuoteStatus()
+                      else
+                        _buildQuoteForm(),
+                    ],
                   ],
                 ),
               ),
             ),
 
-            // Footer Actions
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border(top: BorderSide(color: Colors.grey.shade200)),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () {
-                        // Edit logic
-                        context.push(
-                          '/service-request',
-                          extra: {
-                            'id': _request!['id'],
-                            'categoryId': _request!['category_id'],
-                            'categoryName': categoryName,
-                            'description': _request!['description'],
-                            'eventDate': _request!['event_date'],
-                            'eventTime': _request!['event_time'],
-                            'location': _request!['location'],
-                            'guestCount': _request!['guest_count'].toString(),
-                          },
-                        );
-                      },
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.red,
-                        side: const BorderSide(color: Colors.red),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(25),
+            // Footer Actions (Only for Client usually, or if Provider can cancel/edit?)
+            // If Provider, we might not want these "Edit Request" buttons.
+            if (_userRole == 'client')
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  border: Border(top: BorderSide(color: Colors.grey.shade200)),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () {
+                          context.push(
+                            '/service-request',
+                            extra: {
+                              'id': _request!['id'],
+                              'categoryId': _request!['category_id'],
+                              'categoryName': categoryName,
+                              'description': _request!['description'],
+                              'eventDate': _request!['event_date'],
+                              'eventTime': _request!['event_time'],
+                              'location': _request!['location'],
+                              'guestCount':
+                                  _request!['guest_count']?.toString() ?? '',
+                            },
+                          );
+                        },
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.red,
+                          side: const BorderSide(color: Colors.red),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(25),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        child: const Text('Editar solicitud'),
                       ),
-                      child: const Text('Editar solicitud'),
                     ),
-                  ),
-                  const SizedBox(width: 15),
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () {
-                        // Cancel logic
-                      },
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.brown,
-                        backgroundColor: Colors.grey[100],
-                        side: BorderSide.none,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(25),
+                    const SizedBox(width: 15),
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () {
+                          // Cancel logic could go here
+                        },
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.brown,
+                          backgroundColor: Colors.grey[100],
+                          side: BorderSide.none,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(25),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        child: const Text('Cancelar solicitud'),
                       ),
-                      child: const Text('Cancelar solicitud'),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMyQuoteStatus() {
+    final price = _myQuote!['proposed_price'] ?? 0;
+    final status = _myQuote!['status'] ?? 'pending';
+
+    Color statusColor = Colors.orange;
+    String statusText = 'Pendiente';
+    if (status == 'accepted') {
+      statusColor = Colors.green;
+      statusText = 'Aceptada';
+    } else if (status == 'rejected') {
+      statusColor = Colors.red;
+      statusText = 'Rechazada';
+    } else if (status == 'declined') {
+      statusColor = Colors.grey;
+      statusText = 'Descartada';
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.blue[50],
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.blue.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Tu Cotización',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.blue,
+            ),
+          ),
+          const SizedBox(height: 15),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Precio Cotizado:',
+                style: TextStyle(fontSize: 16, color: Colors.black87),
+              ),
+              Text(
+                '\$$price',
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Estado:',
+                style: TextStyle(fontSize: 16, color: Colors.black87),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: statusColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: statusColor),
+                ),
+                child: Text(
+                  statusText,
+                  style: TextStyle(
+                    color: statusColor,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuoteForm() {
+    if (!_showQuoteForm) {
+      return Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 5,
+              offset: const Offset(0, 2),
             ),
           ],
         ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              '¿Te interesa esta solicitud?',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: _rejectRequest,
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.grey,
+                      side: const BorderSide(color: Colors.grey),
+                      padding: const EdgeInsets.symmetric(vertical: 15),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text('Rechazar'),
+                  ),
+                ),
+                const SizedBox(width: 15),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        _showQuoteForm = true;
+                      });
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 15),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text('Cotizar'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Enviar Cotización',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              IconButton(
+                icon: const Icon(Icons.close, color: Colors.grey),
+                onPressed: () {
+                  setState(() {
+                    _showQuoteForm = false;
+                  });
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          TextField(
+            controller: _priceController,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              labelText: 'Precio propuesto',
+              prefixText: '\$ ',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              filled: true,
+              fillColor: Colors.grey[50],
+            ),
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _submitQuote,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 15),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text(
+                'Aceptar',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -271,7 +601,8 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
         proposal['profiles']?['business_name'] ??
         proposal['profiles']?['full_name'] ??
         'Proveedor';
-    final price = proposal['price'] ?? 0;
+    // Handle case where price might be null or differently named if we use 'proposed_price'
+    final price = proposal['proposed_price'] ?? proposal['price'] ?? 0;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 15),
@@ -302,7 +633,7 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
               const Text(
                 '4.8 (120 reseñas)',
                 style: TextStyle(fontSize: 12, color: Colors.grey),
-              ), // Mock rating
+              ),
             ],
           ),
           const SizedBox(height: 15),
@@ -319,7 +650,68 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
             children: [
               Expanded(
                 child: OutlinedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: Text(providerName),
+                        content: SingleChildScrollView(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Precio: \$$price',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              const Text(
+                                'Descripción:',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              Text(
+                                proposal['description'] ?? 'Sin descripción',
+                              ),
+                              const SizedBox(height: 10),
+                            ],
+                          ),
+                        ),
+                        actions: [
+                          OutlinedButton(
+                            onPressed: () => context.pop(),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.grey,
+                              side: const BorderSide(color: Colors.grey),
+                            ),
+                            child: const Text('Rechazar'),
+                          ),
+                          ElevatedButton(
+                            onPressed: () {
+                              context.pop(); // Close dialog
+                              // Navigate to payment
+                              context.push(
+                                '/payment',
+                                extra: {
+                                  'requestId': _request!['id'],
+                                  'quoteId': proposal['id'],
+                                  'providerId': proposal['provider_id'],
+                                  'proposedPrice': price,
+                                },
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red,
+                              foregroundColor: Colors.white,
+                            ),
+                            child: const Text('Aceptar'),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Colors.red,
                     side: const BorderSide(color: Colors.red),
@@ -333,7 +725,20 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
               const SizedBox(width: 10),
               Expanded(
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    debugPrint(
+                      'Navigating to payment with: requestId=${_request!['id']}, quoteId=${proposal['id']}',
+                    );
+                    context.push(
+                      '/payment',
+                      extra: {
+                        'requestId': _request!['id'],
+                        'quoteId': proposal['id'],
+                        'providerId': proposal['provider_id'],
+                        'proposedPrice': price,
+                      },
+                    );
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red,
                     foregroundColor: Colors.white,

@@ -28,7 +28,8 @@ class _ProviderRequestsScreenState extends State<ProviderRequestsScreen> {
       final quotesResponse = await SupabaseClientConfig.instance
           .from('quotes')
           .select('request_id, id, status, proposed_price')
-          .eq('provider_id', user.id);
+          .eq('provider_id', user.id)
+          .neq('status', 'declined');
 
       final myQuotes = List<Map<String, dynamic>>.from(quotesResponse);
 
@@ -162,9 +163,8 @@ class _ProviderRequestsScreenState extends State<ProviderRequestsScreen> {
                           final isAccepted = item['quote_status'] == 'accepted';
 
                           return GestureDetector(
-                            onTap: () => context.push(
-                              '/proposal-detail/${item['quote_id']}',
-                            ),
+                            onTap: () =>
+                                context.push('/request-detail/${item['id']}'),
                             child: Container(
                               margin: const EdgeInsets.only(bottom: 10),
                               padding: const EdgeInsets.all(15),

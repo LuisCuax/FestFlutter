@@ -15,6 +15,7 @@ import '../features/chat/chat_list_screen.dart';
 import '../features/chat/chat_detail_screen.dart';
 import '../features/profile/client_profile_screen.dart';
 import '../features/profile/provider_profile_screen.dart';
+import '../features/payment/payment_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authProvider);
@@ -71,6 +72,30 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final id = state.pathParameters['id']!;
           return RequestDetailScreen(requestId: id);
+        },
+      ),
+      GoRoute(
+        path: '/payment',
+        builder: (context, state) {
+          // Ensure extra is not null and handle type safety for numbers
+          final extra = state.extra as Map<String, dynamic>? ?? {};
+
+          if (extra.isEmpty) {
+            return Scaffold(
+              appBar: AppBar(title: const Text('Error')),
+              body: const Center(
+                child: Text('Error: Datos de pago no encontrados.'),
+              ),
+            );
+          }
+
+          return PaymentScreen(
+            requestId: extra['requestId']?.toString() ?? '',
+            quoteId: extra['quoteId']?.toString() ?? '',
+            providerId: extra['providerId']?.toString() ?? '',
+            // Safely convert to double, handling both int and double inputs
+            proposedPrice: (extra['proposedPrice'] as num?)?.toDouble() ?? 0.0,
+          );
         },
       ),
       GoRoute(

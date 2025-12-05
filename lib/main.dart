@@ -24,6 +24,7 @@ class MyApp extends ConsumerWidget {
 
     return MaterialApp.router(
       title: 'Festeasy',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
